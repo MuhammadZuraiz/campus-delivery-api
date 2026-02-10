@@ -1,0 +1,61 @@
+const express = require("express");
+const router = express.Router();
+const { register, login } = require("../controllers/auth.controller");
+
+/**
+ * @openapi
+ * tags:
+ *   - name: Auth
+ *     description: Authentication endpoints
+ */
+
+/**
+ * @openapi
+ * /auth/register:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Register a new user
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, email, password]
+ *             properties:
+ *               name: { type: string, example: Zuraiz }
+ *               email: { type: string, example: zuraiz@test.com }
+ *               password: { type: string, example: "123456" }
+ *     responses:
+ *       201:
+ *         description: Registered successfully
+ *       400:
+ *         description: Bad request
+ */
+router.post("/register", register);
+
+/**
+ * @openapi
+ * /auth/login:
+ *   post:
+ *     tags: [Auth]
+ *     summary: Login and receive a JWT token
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email: { type: string, example: zuraiz@test.com }
+ *               password: { type: string, example: "123456" }
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid credentials
+ */
+router.post("/login", login)
+
+module.exports = router;
