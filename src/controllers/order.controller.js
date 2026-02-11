@@ -1,3 +1,4 @@
+const { Prisma } = require("@prisma/client");
 const prisma = require("../prisma");
 
 const createOrder = async (req, res) => {
@@ -79,24 +80,40 @@ const updateOrderStatus = async (req, res) => {
     const { status } = req.body;
     const orderId = Number(req.params.id);
 
-    const allowedStatuses = [
-      "PLACED",
-      "ACCEPTED",
-      "PICKED",
-      "DELIVERED"
-    ];
+    // Fetch current order
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: orderId }
+    });
 
-    if (!allowedStatuses.includes(status)) {
-      return res.status(400).json({ message: "Invalid status" });
+    if (!existingOrder) {
+      return res.status(404).json({ message: "Order not found" });
     }
 
-    const order = await prisma.order.update({
+    const currentStatus = existingOrder.status;
+
+    const allowedTransitions = {
+      PLACED: ["ACCEPTED", "CANCELLED"],
+      ACCEPTED: ["PICKED", "CANCELLED"],
+      PICKED: ["DELIVERED"],
+      DELIVERED: [],
+      CANCELLED: []
+    };
+
+    if (!allowedTransitions[currentStatus].includes(status)) {
+      return res.status(400).json({
+        message: `Invalid transition from ${currentStatus} to ${status}`
+      });
+    }
+
+    const updatedOrder = await prisma.order.update({
       where: { id: orderId },
       data: { status }
     });
 
-    res.json(order);
+    res.json(updatedOrder);
+
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Could not update order" });
   }
 };
