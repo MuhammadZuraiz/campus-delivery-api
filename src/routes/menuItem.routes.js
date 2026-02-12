@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
+const validate = require("../middlewares/validate.middleware");
+const { createMenuItemSchema } = require("../validators");
 const authMiddleware = require("../middlewares/auth.middleware");
 const roleMiddleware = require("../middlewares/role.middleware");
 const { createMenuItem, getMenuByRestaurant } = require("../controllers/menuItem.controller");
@@ -41,7 +43,7 @@ const { createMenuItem, getMenuByRestaurant } = require("../controllers/menuItem
  */
 
 // admin only
-router.post("/", authMiddleware, roleMiddleware(["admin"]), createMenuItem);
+router.post("/", validate(createMenuItemSchema), authMiddleware, roleMiddleware(["admin"]), createMenuItem);
 
 /**
  * @openapi

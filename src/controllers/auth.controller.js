@@ -4,23 +4,12 @@ const prisma = require("../prisma");
 
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password } = req.validatedData;
 
-    // verify all fields present
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // user
     const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        passwordHash: hashedPassword
-      }
+      data: { name, email, passwordHash: hashedPassword },
     });
 
     res.status(201).json({
@@ -29,9 +18,10 @@ const register = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Something went wrong" });
@@ -40,29 +30,22 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.validatedData;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
-    }
-
-    // check if user exists
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
 
     if (!user) {
-      return res.status(401).json({ message: "Email doesn't exist" });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // compare password
     const isMatch = await bcrypt.compare(password, user.passwordHash);
 
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid password" });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // 3. create JWT
     const token = jwt.sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET,
@@ -72,13 +55,8 @@ const login = async (req, res) => {
     res.json({
       message: "Login successful",
       token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role
-      }
     });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Something went wrong" });

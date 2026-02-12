@@ -1,6 +1,8 @@
 const express = require("express");
-const router = express.Router();
 const { register, login } = require("../controllers/auth.controller");
+const validate = require("../middlewares/validate.middleware");
+const { registerSchema, loginSchema } = require("../validators");
+const router = express.Router();
 
 /**
  * @openapi
@@ -32,7 +34,7 @@ const { register, login } = require("../controllers/auth.controller");
  *       400:
  *         description: Bad request
  */
-router.post("/register", register);
+router.post("/register", validate(registerSchema), register);
 
 /**
  * @openapi
@@ -56,6 +58,6 @@ router.post("/register", register);
  *       401:
  *         description: Invalid credentials
  */
-router.post("/login", login)
+router.post("/login", validate(loginSchema), login);
 
 module.exports = router;

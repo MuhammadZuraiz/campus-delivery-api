@@ -1,16 +1,10 @@
-const { Prisma } = require("@prisma/client");
 const prisma = require("../prisma");
 
 const createOrder = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { restaurantId, items } = req.body;
+    const { restaurantId, items } = req.validatedData;
 
-    if (!restaurantId || !items || items.length === 0) {
-      return res.status(400).json({ message: "Invalid order data" });
-    }
-
-    // fetch menu items to get prices
     const menuItems = await prisma.menuItem.findMany({
       where: {
         id: { in: items.map(i => i.menuItemId) }
@@ -26,7 +20,8 @@ const createOrder = async (req, res) => {
         throw new Error("Invalid menu item");
       }
 
-      totalAmount += menuItem.price * item.quantity;
+      const itemTotal = Number(menuItem.price) * item.quantity;
+      totalAmount += itemTotal;
 
       return {
         menuItemId: menuItem.id,
@@ -34,6 +29,8 @@ const createOrder = async (req, res) => {
         unitPrice: menuItem.price
       };
     });
+
+    totalAmount = Number(totalAmount.toFixed(2));
 
     const order = await prisma.order.create({
       data: {
@@ -50,6 +47,7 @@ const createOrder = async (req, res) => {
     });
 
     res.status(201).json(order);
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Could not create order" });
@@ -77,10 +75,9 @@ const getMyOrders = async (req, res) => {
 
 const updateOrderStatus = async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status } = req.validatedData;
     const orderId = Number(req.params.id);
 
-    // Fetch current order
     const existingOrder = await prisma.order.findUnique({
       where: { id: orderId }
     });

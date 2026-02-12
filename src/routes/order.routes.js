@@ -4,6 +4,9 @@ const router = express.Router();
 const authMiddleware = require("../middlewares/auth.middleware");
 const roleMiddleware = require("../middlewares/role.middleware");
 
+const validate = require("../middlewares/validate.middleware");
+const { createOrderSchema, updateOrderStatusSchema } = require("../validators");
+
 const { createOrder, getMyOrders, updateOrderStatus } = require("../controllers/order.controller");
 
 /**
@@ -47,7 +50,7 @@ const { createOrder, getMyOrders, updateOrderStatus } = require("../controllers/
  *         description: Insufficient permissions
  */
 
-router.post("/", authMiddleware, roleMiddleware(["customer"]), createOrder)
+router.post("/", validate(createOrderSchema), authMiddleware, roleMiddleware(["customer"]), createOrder);
 
 /**
  * @openapi
@@ -96,6 +99,6 @@ router.get("/my", authMiddleware, roleMiddleware(["customer"]), getMyOrders);
  */
 
 // admin / rider
-router.patch("/:id/status", authMiddleware, roleMiddleware(["admin", "rider"]), updateOrderStatus);
+router.patch("/:id/status", validate(updateOrderStatusSchema), authMiddleware, roleMiddleware(["admin", "rider"]), updateOrderStatus);
 
 module.exports = router;

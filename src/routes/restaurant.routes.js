@@ -3,6 +3,10 @@ const router = express.Router();
 
 const authMiddleware = require("../middlewares/auth.middleware");
 const roleMiddleware = require("../middlewares/role.middleware");
+
+const validate = require("../middlewares/validate.middleware");
+const { createRestaurantSchema } = require("../validators");
+
 const {
   createRestaurant,
   getRestaurants
@@ -43,7 +47,8 @@ const {
  */
 
 // admin only
-router.post("/", authMiddleware, roleMiddleware(["admin"]), createRestaurant);
+router.post("/", validate(createRestaurantSchema), authMiddleware, roleMiddleware(["admin"]), createRestaurant);
+
 
 /**
  * @openapi

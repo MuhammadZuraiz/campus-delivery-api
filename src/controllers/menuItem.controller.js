@@ -2,11 +2,7 @@ const prisma = require("../prisma");
 
 const createMenuItem = async (req, res) => {
   try {
-    const { name, price, restaurantId } = req.body;
-
-    if (!name || !price || !restaurantId) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
+    const { name, price, restaurantId } = req.validatedData;
 
     const menuItem = await prisma.menuItem.create({
       data: {

@@ -2,11 +2,7 @@ const prisma = require("../prisma");
 
 const createRestaurant = async (req, res) => {
   try {
-    const { name, location } = req.body;
-
-    if (!name || !location) {
-      return res.status(400).json({ message: "Name and location are required" });
-    }
+    const { name, location } = req.validatedData;
 
     const restaurant = await prisma.restaurant.create({
       data: { name, location }
